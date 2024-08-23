@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import pkg from 'body-parser';
+import { encode, } from 'gpt-tokenizer'
 const { json } = pkg;
 
 const port = 3000
@@ -45,6 +46,25 @@ app.post('/chat', async (req, res) => {
         error: error.message,
       })
     }
+  }
+})
+
+/* Tokenizer */
+app.post('/tokenize', async (req, res) => {
+  const str = req.body.stringToTokenize
+  try {
+    if (str == null) {
+      throw new Error('No string was provided')
+    }
+    const encoded = encode(str)
+    const length = encoded.length
+    console.log('Token count is ' + length)
+    return res.status(200).json({
+      success: true,
+      tokens: length
+    })
+  } catch (error) {
+    console.log(error.message)
   }
 })
 

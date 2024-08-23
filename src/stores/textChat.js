@@ -1,8 +1,10 @@
 import { ref, toRaw } from 'vue'
 import { defineStore } from 'pinia'
+import { useTokenizeStore } from './tokenize'
 
 export const useTextChatStore = defineStore('textChat', () => {
 
+  const tokenizeStore = useTokenizeStore()
   // state properties
   const text = ref('') // Text we want OpenAI to analyze
   const question = ref('') // Question we want to ask OpenAI about the text
@@ -24,6 +26,7 @@ export const useTextChatStore = defineStore('textChat', () => {
     prompt.value.push(textToAnalyze)
     prompt.value.push(chatQuestion)
     console.log('prompt', toRaw(prompt.value))
+    tokenizeStore.checkTokens(prompt.value.map(p => p.content).toString())
   }
 
   function sendPrompt() {
