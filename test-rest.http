@@ -1,0 +1,15 @@
+
+
+POST http://localhost:3000/chat HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample",
+    "messages":[
+        { "role": 'user', "content": "Demo text" }
+    ]
+}
+
+###
+
+POST http://localhost:5173/chat HTTP/1.1
