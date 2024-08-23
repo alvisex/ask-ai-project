@@ -27,7 +27,7 @@ app.post('/chat', async (req, res) => {
       throw new Error('We have a problem - no prompt was provided')
     }
 
-    const response = await openai.createChatCompletion({
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages
     })
