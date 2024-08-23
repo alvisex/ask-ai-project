@@ -39,6 +39,12 @@ app.post('/chat', async (req, res) => {
     })
   } catch (error) {
     console.log(error.message)
+    if (error.status = 429) {
+      return res.status(429).json({
+        success: false,
+        error: error.message,
+      })
+    }
   }
 })
 

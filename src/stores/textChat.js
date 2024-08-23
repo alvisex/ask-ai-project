@@ -41,6 +41,10 @@ export const useTextChatStore = defineStore('textChat', () => {
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log('data', data)
+          if (!data.success) {
+            alert(data.error)
+          }
           gptResponse.value = data.message.content
         }).catch(e => {
           console.log('error fetching', e)
