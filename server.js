@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import pkg from 'body-parser';
-import { encode, } from 'gpt-tokenizer'
+import { encode, decodeGenerator, decode } from 'gpt-tokenizer/model/gpt-4o';
 const { json } = pkg;
 
 const port = 3000
@@ -57,11 +57,24 @@ app.post('/tokenize', async (req, res) => {
       throw new Error('No string was provided')
     }
     const encoded = encode(str)
+    const decoded = decode(encoded)
+    const tokens = []
+
+    for (const textChunk of decodeGenerator(encoded)) {
+      console.log(textChunk)
+      tokens.push(textChunk)
+    }
+    //console.log('decoded', decoded)
+    /* decodeGenerator(encoded).forEach(token => {
+      tokens.push(token)
+    }); */
     const length = encoded.length
     console.log('Token count is ' + length)
     return res.status(200).json({
       success: true,
-      tokens: length
+      tokensLength: length,
+      tokens,
+      encoded,
     })
   } catch (error) {
     console.log(error.message)

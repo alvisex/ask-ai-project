@@ -8,6 +8,13 @@ function sendQuestion() {
   textChatStore.createPrompt()
   //textChatStore.sendPrompt()
 }
+const pastelColors = [
+  'rgba(107,64,216,.3)',
+  'rgba(104,222,122,.4)',
+  'rgba(244,172,54,.4)',
+  'rgba(239,65,70,.4)',
+  'rgba(39,181,234,.4)'
+]
 </script>
 
 <template>
@@ -23,9 +30,17 @@ function sendQuestion() {
         />
       </section>
 
-      <div v-if="tokenizeStore.tokenLength" class="text-xs mt-1">
-        Token length: {{ tokenizeStore.tokenLength }}
-      </div>
+      <section v-if="tokenizeStore.tokenLength">
+        <!-- Text Area to input text for analysis -->
+        <span
+          v-for="(token, index) of tokenizeStore.tokens"
+          :style="{ backgroundColor: pastelColors[index % pastelColors.length] }"
+          class="px-1 rounded"
+          >{{ token }}</span
+        >
+
+        <div class="text-xs mt-1">Token length: {{ tokenizeStore.tokenLength }}</div>
+      </section>
     </div>
     <div>
       <!-- Input to add a question we want to ask about the text -->
