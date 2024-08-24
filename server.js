@@ -3,6 +3,9 @@ import cors from 'cors'
 import pkg from 'body-parser';
 import { encode, decodeGenerator, decode } from 'gpt-tokenizer/model/gpt-4o';
 const { json } = pkg;
+import multer from 'multer';
+const upload = multer()
+import fs from 'fs';
 
 const port = 3000
 const app = express()
@@ -78,6 +81,26 @@ app.post('/tokenize', async (req, res) => {
     })
   } catch (error) {
     console.log(error.message)
+  }
+})
+
+/* AUDIO with Deepgram */
+import { createClient } from '@deepgram/sdk'
+const deepgram = createClient(process.env.DG_API)
+
+app.post('/dg-transcription', upload.single('file'), async (req, res) => {
+  try {
+    const dgResponse = await deepgram.listen.prerecorded.transcribeFile(
+      req.file.buffer,
+      {
+        smart_format: true,
+        model: 'nova-2'
+      }
+    )
+    console.log('dgResponse', dgResponse)
+    res.send({ transcript: dgResponse })
+  } catch (e) {
+    console.log('error', e)
   }
 })
 

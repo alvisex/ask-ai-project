@@ -35,6 +35,7 @@ const pastelColors = [
         <span
           v-for="(token, index) of tokenizeStore.tokens"
           :style="{ backgroundColor: pastelColors[index % pastelColors.length] }"
+          :key="token[0] + index"
           class="px-1 rounded"
           >{{ token }}</span
         >
