@@ -153,4 +153,32 @@ app.get('/clear-chain', async (req, res) => {
     message: 'Memory is clear!'
   })
 })
+
+
+/* Replciate stuff */
+import Replicate from 'replicate'
+import { errorMessages } from 'vue/compiler-sfc';
+const replicate = new Replicate({
+  auth: process.env.REPLICATE
+})
+
+const miniGPT = 'daanelson/minigpt-4:e447a8583cffd86ce3b93f9c2cd24f2eae603d99ace6afa94b33a08e94a3cd06'
+
+// Replicate (minigpt) image analyzer
+app.post('/minigpt', async (req, res) => {
+  console.log('req.body', req.body)
+  try {
+    const output = await replicate.run(miniGPT, {
+      input: {
+        image: req.body.image,
+        prompt: req.body.prompt
+      }
+    })
+    console.log(output)
+    res.send({ message: output })
+  } catch (e) {
+    console.log('error', e)
+    res.send({ error: true, errorMessage: e.message })
+  }
+})
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
