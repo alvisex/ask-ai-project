@@ -4,21 +4,16 @@ import pkg from 'body-parser';
 import { encode, decodeGenerator, decode } from 'gpt-tokenizer/model/gpt-4o';
 const { json } = pkg;
 import multer from 'multer';
-const upload = multer()
-import fs from 'fs';
 
 const port = 3000
 const app = express()
+const upload = multer()
 app.use(cors())
 app.use(json())
 
 
 /* OpenAI stuff */
 import { OpenAI } from 'openai'
-/* const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-}) */
-
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // OpenAI chat completion
@@ -87,7 +82,6 @@ app.post('/tokenize', async (req, res) => {
 /* AUDIO with Deepgram */
 import { createClient } from '@deepgram/sdk'
 const deepgram = createClient(process.env.DG_API)
-
 app.post('/dg-transcription', upload.single('file'), async (req, res) => {
   try {
     const dgResponse = await deepgram.listen.prerecorded.transcribeFile(
@@ -104,4 +98,59 @@ app.post('/dg-transcription', upload.single('file'), async (req, res) => {
   }
 })
 
+
+////// LangChain Config //////
+import { ChatOpenAI } from "@langchain/openai";
+import { BufferMemory } from 'langchain/memory'
+import { ConversationChain } from 'langchain/chains'
+
+const model = new ChatOpenAI({ model: 'gpt-4o-mini' })
+const memory = new BufferMemory()
+const chain = new ConversationChain({ llm: model, memory: memory })
+let chainNum = 0
+
+app.post('/chain', async (req, res) => {
+  console.log('Calling the chain API');
+
+  chainNum++
+  const messages = req.body.messages
+  console.log(chainNum)
+  if (chainNum === 1) {
+    try {
+      const firstResponse = await chain.call({ input: messages[0].content })
+      console.log(firstResponse)
+      const secondResponse = await chain.call({ input: messages[1].content })
+      console.log(secondResponse)
+      const thirdResponse = await chain.call({ input: messages[2].content })
+      console.log(thirdResponse)
+      return res.status(200).json({
+        success: true,
+        message: thirdResponse.response
+      })
+    } catch (error) {
+      chainNum--
+      console.error('error', error.message)
+      return res.status(200).json({
+        success: false,
+        message: error.message
+      })
+    }
+  } else {
+    const nextResponse = await chain.call({ input: messages[2].content })
+    console.log(nextResponse)
+    return res.status(200).json({
+      success: true,
+      message: nextResponse.response
+    })
+  }
+})
+
+app.get('/clear-chain', async (req, res) => {
+  memory.clear()
+  chainNum = 0
+  return res.status(200).json({
+    success: true,
+    message: 'Memory is clear!'
+  })
+})
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))

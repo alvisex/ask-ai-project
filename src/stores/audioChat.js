@@ -55,10 +55,10 @@ export const useAudioChatStore = defineStore('audioChat', () => {
     }
   }
 
-  function sendPrompt() {
+  async function sendPrompt() {
     isLoadingGPT.value = true
 
-    fetch('http://localhost:3000/chat', {
+    const data = await fetch('http://localhost:3000/chain', {
       method: 'POST',
       body: JSON.stringify({
         messages: prompt.value
@@ -68,16 +68,18 @@ export const useAudioChatStore = defineStore('audioChat', () => {
       }
     })
       .then((response) => response.json())
-      .then((data) => {
-        isLoadingGPT.value = false
-        gptResponse.value = data.message.content
-        // array to save the conversation
-        questionAnswerList.value.push({
-          question: question.value,
-          answer: data.message.content
-        })
-        question.value = ''
-      })
+    if (!data.success) { return 0 }
+
+    isLoadingGPT.value = false
+    gptResponse.value = data.message
+    // array to save the conversation
+    questionAnswerList.value.push({
+      question: question.value,
+      answer: data.message.content
+    })
+    question.value = ''
+
+
   }
 
   function clearChat() {
@@ -90,6 +92,8 @@ export const useAudioChatStore = defineStore('audioChat', () => {
     isLoadingGPT.value = false
     clearFile.value = true
     questionAnswerList.value = []
+    // clear memory in server:
+    fetch('http://localhost:3000/clear-chain').then((response) => response.json())
   }
 
   return {
