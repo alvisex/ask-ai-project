@@ -157,7 +157,6 @@ app.get('/clear-chain', async (req, res) => {
 
 /* Replciate stuff */
 import Replicate from 'replicate'
-import { errorMessages } from 'vue/compiler-sfc';
 const replicate = new Replicate({
   auth: process.env.REPLICATE
 })
@@ -180,5 +179,54 @@ app.post('/minigpt', async (req, res) => {
     console.log('error', e)
     res.send({ error: true, errorMessage: e.message })
   }
+})
+
+
+////// Replicate + Langchain config //////
+import { Replicate as ReplicateLC } from "@langchain/community/llms/replicate";
+
+const replicateModel = new ReplicateLC({
+  model: miniGPT,
+  apiKey: process.env.REPLICATE
+})
+
+const replicateMemory = new BufferMemory()
+const replicateChain = new ConversationChain({ llm: replicateModel, memory: replicateMemory })
+let replicateChainNum = 0
+
+app.post('/replicate-chain', async (req, res) => {
+  console.log(req.body)
+  replicateChainNum++
+  console.log(replicateChainNum)
+  if (replicateChainNum === 1) {
+    // send image only on first request
+    replicateModel.input.image = req.body.image
+    const firstResponse = await replicateChain.call({ input: req.body.prompt })
+    console.log(firstResponse)
+    return res.status(200).json({
+      success: true,
+      message: firstResponse.response
+    })
+  } else {
+    console.log('else statement')
+
+    const nextResponse = await replicateChain.call({
+      input: req.body.prompt
+    })
+    console.log(nextResponse)
+    return res.status(200).json({
+      success: true,
+      message: nextResponse.response
+    })
+  }
+})
+
+app.get('/clear-replichain', async (req, res) => {
+  replicateMemory.clear()
+  replicateChainNum = 0
+  return res.status(200).json({
+    success: true,
+    message: 'Memory is clear!'
+  })
 })
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))

@@ -9,7 +9,7 @@ export const useImageChatStore = defineStore('imageChat', () => {
   const questionAnswerList = ref([])
 
   async function createPrompt() {
-    const data = await fetch('http://localhost:3000/minigpt', {
+    const data = await fetch('http://localhost:3000/replicate-chain', {
       method: 'POST',
       body: JSON.stringify({
         image: imageURL.value,
