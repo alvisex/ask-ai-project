@@ -16,6 +16,11 @@ import ChatWindowAudio from '../components/ChatWindowAudio.vue'
     </div>
     <div class="min-h-80 flex flex-col justify-between">
       <!--  <Chat-window-audio page="audio" /> -->
+      <chat-window-audio page="audio" />
+
+      <div class="flex justify-end">
+        <button @click="audioChatStore.clearChat()" class="button button-secondary">Clear</button>
+      </div>
     </div>
   </article>
 </template>

@@ -5,6 +5,13 @@ export const useAudioChatStore = defineStore('audioChat', () => {
   const file = ref({})
   const transcript = ref('')
   const response = ref({})
+  const prompt = ref([])
+  const gptResponse = ref('')
+  const question = ref('')
+  const isTranscribing = ref(false)
+  const isLoadingGPT = ref(false)
+  const clearFile = ref(false)
+  const questionAnswerList = ref([])
 
   async function transcribeFile() {
     if (!file.value) {
@@ -26,9 +33,78 @@ export const useAudioChatStore = defineStore('audioChat', () => {
     }
   }
 
+  function createPrompt() {
+    prompt.value = []
+    const instructions = {
+      role: 'system',
+      content:
+        'You will answer questions about the following text that has been transcribed from an audio file.'
+    }
+    const transcriptToAnalyze = { role: 'user', content: transcript.value }
+    const chatQuestion = { role: 'user', content: question.value }
+    ///create prompt array
+    prompt.value.push(instructions)
+    prompt.value.push(transcriptToAnalyze)
+    prompt.value.push(chatQuestion)
+
+    if (transcript.value) {
+      sendPrompt()
+    } else {
+      alert('Please transcribe an audio file.')
+      prompt.value = []
+    }
+  }
+
+  function sendPrompt() {
+    isLoadingGPT.value = true
+
+    fetch('http://localhost:3000/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: prompt.value
+      }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        isLoadingGPT.value = false
+        gptResponse.value = data.message.content
+        // array to save the conversation
+        questionAnswerList.value.push({
+          question: question.value,
+          answer: data.message.content
+        })
+        question.value = ''
+      })
+  }
+
+  function clearChat() {
+    file.value = {}
+    prompt.value = []
+    gptResponse.value = ''
+    transcript.value = ''
+    question.value = ''
+    isTranscribing.value = false
+    isLoadingGPT.value = false
+    clearFile.value = true
+    questionAnswerList.value = []
+  }
+
   return {
     file,
     transcript,
-    transcribeFile
+    transcribeFile,
+    prompt,
+    createPrompt,
+    sendPrompt,
+    gptResponse,
+    question,
+    isTranscribing,
+    isLoadingGPT,
+    clearChat,
+    clearFile,
+    questionAnswerList
   }
 })
